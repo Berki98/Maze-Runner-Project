@@ -2,87 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Maze Runner: Berki Ultimate</title>
+    <title>Maze Runner: Berki Pro Edition</title>
     <style>
-        :root { --primary: #3498db; --bg: #0a0a0a; --panel: #1a1a1a; --accent: #f1c40f; }
+        :root { --primary: #3498db; --bg: #0a0a0a; --panel: #1a1a1a; --accent: #f1c40f; --xp: #9b59b6; --token: #e84393; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
-        .top-nav { display: flex; gap: 20px; padding: 15px; z-index: 10; }
-        .nav-box { border: 2px solid var(--primary); padding: 10px 25px; border-radius: 5px; background: var(--panel); cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.2s; }
-        .nav-box:hover { background: var(--primary); }
-        .stats { display: flex; gap: 40px; font-size: 22px; color: var(--accent); margin-bottom: 5px; font-weight: bold; }
-
-        /* Fullscreen Menu according to Berki's Drawing */
-        .menu-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,10,0.98); z-index: 1000; padding: 40px; box-sizing: border-box; }
-        .menu-layout { display: flex; width: 100%; height: 90%; gap: 40px; margin-top: 20px; }
         
-        /* Left side: Grid */
-        .grid-area { flex: 2; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding-right: 20px; }
-        .item-tile { background: #222; border: 2px solid #444; aspect-ratio: 1; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .item-tile:hover { border-color: var(--primary); }
-        .item-tile.selected { border-color: var(--accent); background: #333; }
-        .tile-preview { width: 40px; height: 40px; border: 1px solid white; }
+        .top-nav { display: flex; gap: 15px; padding: 10px; z-index: 10; flex-wrap: wrap; justify-content: center; }
+        .nav-box { border: 2px solid var(--primary); padding: 8px 20px; border-radius: 5px; background: var(--panel); cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 14px; }
+        
+        .stats-bar { display: flex; gap: 25px; font-size: 18px; color: var(--accent); margin-bottom: 5px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 20px; border-radius: 20px; }
 
-        /* Right side: Preview (Exactly like Berki's drawing) */
-        .preview-area { flex: 1; background: var(--panel); border: 3px solid var(--primary); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .big-preview { width: 100px; height: 100px; border: 4px solid white; margin-bottom: 30px; }
-        .action-btn { width: 80%; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
-        .btn-equip { background: #27ae60; color: white; }
-        .btn-unequip { background: #e67e22; color: white; }
-        .btn-buy { background: var(--accent); color: black; }
+        /* Battle Pass / XP Bar Style from your Drawing */
+        .xp-container { width: 90%; max-width: 1000px; background: #222; height: 120px; margin-top: 10px; position: relative; border-radius: 15px; border: 2px solid var(--xp); overflow-x: auto; display: flex; align-items: center; padding: 0 50px; }
+        .xp-line { min-width: 2000px; height: 10px; background: #444; position: relative; display: flex; align-items: center; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, var(--xp), #d63031); width: 0%; transition: 0.5s; }
+        .reward-node { position: absolute; width: 60px; height: 60px; background: #333; border: 2px solid #555; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; }
+        .reward-node.unlocked { border-color: var(--accent); background: #444; }
+        .node-up { top: -70px; }
+        .node-down { top: 20px; }
 
-        .close-btn { position: absolute; top: 20px; right: 40px; font-size: 40px; color: #e74c3c; cursor: pointer; }
-        canvas { border: 4px solid #333; background: #000; box-shadow: 0 0 40px black; }
+        /* Fullscreen Menus */
+        .menu-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,10,0.98); z-index: 1000; padding: 30px; box-sizing: border-box; }
+        .menu-layout { display: flex; width: 100%; height: 80%; gap: 30px; margin-top: 10px; }
+        .grid-area { flex: 2; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        .item-tile { background: #222; border: 2px solid #444; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; padding: 10px; font-size: 12px; }
+        .item-tile.selected { border-color: var(--accent); }
+        .preview-area { flex: 1; background: var(--panel); border: 3px solid var(--primary); border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .big-preview { width: 80px; height: 80px; border: 3px solid white; margin-bottom: 15px; }
+        
+        .mode-card { width: 250px; padding: 20px; border: 3px solid var(--primary); border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .mode-card:hover { transform: scale(1.05); background: #222; }
+        .close-btn { position: absolute; top: 15px; right: 30px; font-size: 40px; color: #e74c3c; cursor: pointer; }
+        
+        canvas { border: 4px solid #333; background: #000; box-shadow: 0 0 30px black; }
+        .action-btn { width: 100%; padding: 12px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; text-transform: uppercase; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="top-nav">
+        <div class="nav-box" onclick="openMenu('modeMenu')">Gamemodes</div>
         <div class="nav-box" onclick="openMenu('shopMenu')">Shop</div>
         <div class="nav-box" onclick="openMenu('skinMenu')">Skins</div>
+        <div class="nav-box" onclick="openMenu('passMenu')">Battle Pass</div>
         <div class="nav-box" onclick="openMenu('settingsMenu')">Settings</div>
     </div>
 
-    <div class="stats">
-        <span>LVL: <span id="ui-lvl">1</span></span>
-        <span>GOLD: <span id="ui-bank">0</span> 💰</span>
-        <span>CARRY: <span id="ui-buck">0</span> 🪣</span>
+    <div class="stats-bar">
+        <span>LVL <span id="ui-lvl">1</span></span>
+        <span>💰 <span id="ui-bank">0</span></span>
+        <span>💎 <span id="ui-tokens">0</span></span>
+        <span>XP: <span id="ui-xp">0</span></span>
+        <span id="ui-mode" style="color:var(--primary)">MODE: NORMAL</span>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <div id="modeMenu" class="menu-screen">
+        <span class="close-btn" onclick="closeMenus()">×</span>
+        <h1 style="text-align: center;">SELECT GAMEMODE</h1>
+        <div style="display: flex; justify-content: center; gap: 30px; margin-top: 50px;">
+            <div class="mode-card" onclick="setMode('CLASSIC')">
+                <h2>CLASSIC</h2>
+                <p>No Lava. Just Maze & Coins. Chill mode.</p>
+            </div>
+            <div class="mode-card" style="border-color: var(--accent)" onclick="setMode('NORMAL')">
+                <h2>NORMAL</h2>
+                <p>Lava + XP Orbs. The standard experience.</p>
+            </div>
+            <div id="hardcore-card" class="mode-card" style="border-color: #e74c3c" onclick="setMode('HARDCORE')">
+                <h2>HARDCORE</h2>
+                <p>Lots of Lava! 5 Daily Tries. Massive Rewards.</p>
+                <p id="hc-timer" style="color: #e74c3c; font-weight: bold;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="passMenu" class="menu-screen">
+        <span class="close-btn" onclick="closeMenus()">×</span>
+        <h1>BATTLE PASS (XP ROAD)</h1>
+        <div class="xp-container" id="xpScrollArea">
+            <div class="xp-line">
+                <div id="pass-fill" class="xp-fill"></div>
+                <div id="reward-nodes-container"></div>
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 20px;">Every 50 XP: Reward | Every 100 XP: New Skin Color!</p>
+    </div>
 
     <div id="skinMenu" class="menu-screen">
         <span class="close-btn" onclick="closeMenus()">×</span>
-        <h1>CHARACTER SKINS</h1>
+        <h1>SKIN INVENTORY</h1>
         <div class="menu-layout">
             <div id="skinGrid" class="grid-area"></div>
             <div class="preview-area">
                 <div id="p-skin-box" class="big-preview"></div>
-                <h2 id="p-skin-name">Select a Skin</h2>
-                <button id="p-skin-btn" class="action-btn" onclick="handleSkinAction()">Action</button>
+                <h2 id="p-skin-name">-</h2>
+                <button id="p-skin-btn" class="action-btn" onclick="handleSkinAction()">Equip</button>
             </div>
         </div>
     </div>
 
     <div id="shopMenu" class="menu-screen">
         <span class="close-btn" onclick="closeMenus()">×</span>
-        <h1>GLOBAL SHOP</h1>
+        <h1>TOKEN SHOP</h1>
         <div class="menu-layout">
             <div id="shopGrid" class="grid-area"></div>
             <div class="preview-area">
                 <div id="s-item-box" class="big-preview"></div>
-                <h2 id="s-item-name">Select Item</h2>
+                <h2 id="s-item-name">-</h2>
                 <p id="s-item-cost"></p>
-                <button id="s-item-btn" class="action-btn btn-buy" onclick="handleShopAction()">Buy</button>
+                <button id="s-item-btn" class="action-btn" style="background:var(--token)" onclick="handleShopAction()">Buy with Tokens</button>
             </div>
         </div>
     </div>
 
     <div id="settingsMenu" class="menu-screen">
         <span class="close-btn" onclick="closeMenus()">×</span>
-        <div style="text-align:center; width:100%; margin-top:100px;">
+        <div style="text-align: center; margin-top: 100px;">
             <h1>SETTINGS</h1>
-            <button class="nav-box" onclick="toggleFog()">Fog of War: <span id="fog-status">ON</span></button>
-            <p>Your progress is automatically saved to this browser.</p>
+            <button class="nav-box" style="font-size: 20px;" onclick="toggleFog()">Visibility Fog: <span id="fog-status">ON</span></button>
+            <button class="nav-box" style="font-size: 20px; border-color: #e74c3c; margin-left: 20px;" onclick="if(confirm('Reset all progress?')) { localStorage.clear(); location.reload(); }">RESET DATA</button>
         </div>
     </div>
 
@@ -90,232 +130,182 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Game State & Save Logic
-        let state = JSON.parse(localStorage.getItem('mazeRunnerSave')) || {
-            bank: 0, level: 1, 
-            ownedSkins: ['#00ff00'], 
-            activeSkin: '#00ff00',
-            mazeColor: '#3498db',
-            fog: true
+        // Game State with XP and Tokens
+        let state = JSON.parse(localStorage.getItem('mzBerki_v3')) || {
+            bank: 0, tokens: 0, xp: 0, level: 1,
+            owned: ['#00ff00'], active: '#00ff00', fog: true,
+            hcTries: 5, lastHC: Date.now()
         };
 
-        function save() { localStorage.setItem('mazeRunnerSave', JSON.stringify(state)); }
-
-        let bucket = 0;
-        let player = { x: 30, y: 30, size: 20 };
-        let walls = [], coins = [], lava = [];
-        let selectedSkin = state.activeSkin;
-        let selectedShopItem = null;
-
-        const allSkins = [
-            {id: '#00ff00', name: 'Neon Green', cost: 0},
-            {id: '#3498db', name: 'Ocean Blue', cost: 50},
-            {id: '#f1c40f', name: 'Pure Gold', cost: 150},
-            {id: '#e74c3c', name: 'Fire Red', cost: 200},
-            {id: '#9b59b6', name: 'Shadow Purple', cost: 300},
-            {id: '#ffffff', name: 'Ghost', cost: 500}
+        const colors = [
+            '#00ff00','#3498db','#f1c40f','#e74c3c','#9b59b6','#ffffff','#1abc9c','#2ecc71','#e67e22','#ecf0f1',
+            '#95a5a6','#7f8c8d','#d35400','#c0392b','#8e44ad','#2980b9','#27ae60','#16a085','#f39c12','#d63031',
+            '#fdcb6e','#00cec9','#6c5ce7','#fab1a0','#a29bfe','#dfe6e9','#b2bec3','#636e72','#2d3436','#006266'
         ];
 
-        // Functions
+        let mode = 'NORMAL', bucket = 0, bucketXP = 0, player = {x:30,y:30}, walls=[], coins=[], xpOrbs=[], lava=[];
+        let selSkin = state.active, selShop = null;
+
+        function save() { localStorage.setItem('mzBerki_v3', JSON.stringify(state)); }
+
+        function setMode(m) { 
+            if(m === 'HARDCORE' && state.hcTries <= 0) { alert("No tries left today!"); return; }
+            if(m === 'HARDCORE') state.hcTries--;
+            mode = m; document.getElementById('ui-mode').innerText = "MODE: " + m;
+            document.getElementById('ui-mode').style.color = (m==='HARDCORE'?'#e74c3c':(m==='CLASSIC'?'#1abc9c':'#3498db'));
+            closeMenus(); generate(); save(); 
+        }
+
         function openMenu(id) { 
             document.getElementById(id).style.display = 'block'; 
-            if(id === 'skinMenu') renderSkinGrid();
-            if(id === 'shopMenu') renderShopGrid();
+            if(id === 'skinMenu') renderSkins();
+            if(id === 'shopMenu') renderShop();
+            if(id === 'passMenu') renderPass();
         }
         function closeMenus() { document.querySelectorAll('.menu-screen').forEach(m => m.style.display='none'); }
-        function toggleFog() { state.fog = !state.fog; document.getElementById('fog-status').innerText = state.fog ? "ON" : "OFF"; save(); draw(); }
+        function toggleFog() { state.fog = !state.fog; document.getElementById('fog-status').innerText = state.fog ? "ON" : "OFF"; save(); }
 
-        function renderSkinGrid() {
-            const grid = document.getElementById('skinGrid');
-            grid.innerHTML = '';
-            allSkins.forEach(skin => {
-                if(state.ownedSkins.includes(skin.id)) {
-                    let div = document.createElement('div');
-                    div.className = `item-tile ${selectedSkin === skin.id ? 'selected' : ''}`;
-                    div.innerHTML = `<div class="tile-preview" style="background:${skin.id}"></div>`;
-                    div.onclick = () => selectSkin(skin);
-                    grid.appendChild(div);
+        // BATTLE PASS LOGIC
+        function renderPass() {
+            const container = document.getElementById('reward-nodes-container');
+            container.innerHTML = '';
+            const fill = document.getElementById('pass-fill');
+            fill.style.width = (state.xp / 3000 * 100) + "%"; // 3000 XP total road
+
+            for(let i=1; i<=30; i++) {
+                let xpReq = i * 100;
+                let node = document.createElement('div');
+                node.className = `reward-node ${i%2===0?'node-up':'node-down'} ${state.xp >= xpReq ? 'unlocked' : ''}`;
+                node.style.left = (i * 60) + "px";
+                node.innerHTML = `<b>${xpReq} XP</b><div style="width:20px;height:20px;background:${colors[i-1]};margin-top:5px;"></div>`;
+                if(state.xp >= xpReq && !state.owned.includes(colors[i-1])) {
+                    state.owned.push(colors[i-1]); save();
                 }
-            });
-            selectSkin(allSkins.find(s => s.id === selectedSkin));
-        }
-
-        function selectSkin(skin) {
-            selectedSkin = skin.id;
-            document.getElementById('p-skin-box').style.background = skin.id;
-            document.getElementById('p-skin-name').innerText = skin.name;
-            const btn = document.getElementById('p-skin-btn');
-            if(state.activeSkin === skin.id) {
-                btn.innerText = "Equipped"; btn.className = "action-btn btn-unequip";
-            } else {
-                btn.innerText = "Equip"; btn.className = "action-btn btn-equip";
+                container.appendChild(node);
             }
-            renderSkinGrid();
         }
 
-        function handleSkinAction() {
-            state.activeSkin = selectedSkin;
-            save(); renderSkinGrid(); draw();
+        function renderSkins() {
+            const g = document.getElementById('skinGrid'); g.innerHTML = '';
+            state.owned.forEach(s => {
+                let d = document.createElement('div');
+                d.className = `item-tile ${selSkin === s ? 'selected' : ''}`;
+                d.innerHTML = `<div style="width:40px;height:40px;background:${s};border:1px solid white"></div>`;
+                d.onclick = () => { selSkin = s; renderSkins(); updateSkinPreview(s); };
+                g.appendChild(d);
+            });
+            updateSkinPreview(selSkin);
         }
 
-        function renderShopGrid() {
-            const grid = document.getElementById('shopGrid');
-            grid.innerHTML = '';
-            allSkins.forEach(skin => {
-                if(!state.ownedSkins.includes(skin.id)) {
-                    let div = document.createElement('div');
-                    div.className = "item-tile";
-                    div.innerHTML = `<div class="tile-preview" style="background:${skin.id}"></div>`;
-                    div.onclick = () => selectShopItem(skin);
-                    grid.appendChild(div);
+        function updateSkinPreview(s) {
+            document.getElementById('p-skin-box').style.background = s;
+            const b = document.getElementById('p-skin-btn');
+            b.innerText = (state.active === s) ? "Equipped" : "Equip";
+            b.style.background = (state.active === s) ? "#e67e22" : "#27ae60";
+        }
+
+        function handleSkinAction() { state.active = selSkin; save(); renderSkins(); }
+
+        function renderShop() {
+            const g = document.getElementById('shopGrid'); g.innerHTML = '';
+            colors.forEach(c => {
+                if(!state.owned.includes(c)) {
+                    let d = document.createElement('div');
+                    d.className = `item-tile ${selShop === c ? 'selected' : ''}`;
+                    d.innerHTML = `<div style="width:30px;height:30px;background:${c}"></div><span>50 💎</span>`;
+                    d.onclick = () => { selShop = c; renderShop(); updateShopPreview(c); };
+                    g.appendChild(d);
                 }
             });
         }
 
-        function selectShopItem(item) {
-            selectedShopItem = item;
-            document.getElementById('s-item-box').style.background = item.id;
-            document.getElementById('s-item-name').innerText = item.name;
-            document.getElementById('s-item-cost').innerText = `Cost: ${item.cost} Gold`;
+        function updateShopPreview(c) {
+            document.getElementById('s-item-box').style.background = c;
+            document.getElementById('s-item-cost').innerText = "Cost: 50 Skin Tokens";
         }
 
         function handleShopAction() {
-            if(selectedShopItem && state.bank >= selectedShopItem.cost) {
-                state.bank -= selectedShopItem.cost;
-                state.ownedSkins.push(selectedShopItem.id);
-                save(); updateUI(); renderShopGrid();
-                alert("Purchased!");
-            } else { alert("Not enough gold!"); }
+            if(selShop && state.tokens >= 50) {
+                state.tokens -= 50; state.owned.push(selShop); save(); updateUI(); selShop = null; renderShop();
+            } else { alert("Not enough Tokens!"); }
         }
 
-        function generateLevel() {
-            walls = [
-                {x:0,y:0,w:800,h:10},{x:0,y:440,w:800,h:10},
-                {x:0,y:0,w:10,h:450},{x:790,y:0,w:10,h:450}
-            ];
-            for(let i=0; i<5+state.level; i++) {
-                walls.push({
-                    x: Math.random()*600+100, y: Math.random()*300+50,
-                    w: Math.random()>0.5?10:120, h: Math.random()>0.5?120:10
-                });
+        function generate() {
+            walls = [{x:0,y:0,w:800,h:10},{x:0,y:390,w:800,h:10},{x:0,y:0,w:10,h:400},{x:790,y:0,w:10,h:400}];
+            let wallCount = mode === 'HARDCORE' ? 15 : 8;
+            for(let i=0; i<wallCount; i++) walls.push({x:Math.random()*600+100,y:Math.random()*250+50,w:Math.random()>.5?15:100,h:Math.random()>.5?100:15});
+            
+            coins = []; for(let i=0; i<6; i++) coins.push({x:Math.random()*700+50,y:Math.random()*300+50,c:false});
+            xpOrbs = []; if(mode !== 'CLASSIC') { for(let i=0; i<4; i++) xpOrbs.push({x:Math.random()*700+50,y:Math.random()*300+50,c:false}); }
+            
+            lava = []; 
+            if(mode !== 'CLASSIC') {
+                let lavaCount = mode === 'HARDCORE' ? state.level + 8 : state.level + 2;
+                for(let i=0; i<lavaCount; i++) lava.push({x:Math.random()*600+100,y:Math.random()*300+50,w:30,h:30,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4});
             }
-            coins = []; for(let i=0; i<6; i++) coins.push({x: Math.random()*700+50, y: Math.random()*350+50, c:false});
-            lava = []; for(let i=0; i<state.level; i++) lava.push({x: Math.random()*600+100, y: Math.random()*300+50, w:30, h:30});
-            player.x = 30; player.y = 30;
+            player.x=30; player.y=30;
         }
 
         function updateUI() {
             document.getElementById('ui-lvl').innerText = state.level;
             document.getElementById('ui-bank').innerText = state.bank;
-            document.getElementById('ui-buck').innerText = bucket;
+            document.getElementById('ui-tokens').innerText = state.tokens;
+            document.getElementById('ui-xp').innerText = state.xp;
+            document.getElementById('hc-timer').innerText = `Tries left: ${state.hcTries}`;
         }
 
         function draw() {
-            ctx.clearRect(0,0,800,450);
-            ctx.fillStyle = state.mazeColor;
-            walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
-            ctx.fillStyle = "#e74c3c"; lava.forEach(l => ctx.fillRect(l.x, l.y, l.w, l.h));
-            ctx.fillStyle = varColor('--accent');
-            coins.forEach(c => { if(!c.c) { ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill(); }});
+            ctx.clearRect(0,0,800,400);
+            ctx.fillStyle = "#34495e"; walls.forEach(w => ctx.fillRect(w.x,w.y,w.w,w.h));
+            ctx.fillStyle = "#e74c3c"; lava.forEach(l => {
+                l.x += l.vx; l.y += l.vy;
+                if(l.x<10||l.x>760) l.vx*=-1; if(l.y<10||l.y>360) l.vy*=-1;
+                ctx.fillRect(l.x,l.y,l.w,l.h);
+            });
+            ctx.fillStyle = varColor('--accent'); coins.forEach(c => {if(!c.c){ctx.beginPath();ctx.arc(c.x,c.y,8,0,Math.PI*2);ctx.fill();}});
+            ctx.fillStyle = varColor('--xp'); xpOrbs.forEach(o => {if(!o.c){ctx.beginPath();ctx.arc(o.x,o.y,6,0,Math.PI*2);ctx.fill();}});
             
-            ctx.fillStyle = "#27ae60"; ctx.fillRect(740, 180, 40, 80); // Goal
-            
-            ctx.fillStyle = state.activeSkin; ctx.fillRect(player.x, player.y, 20, 20);
-            ctx.strokeStyle = "white"; ctx.strokeRect(player.x, player.y, 20, 20);
+            ctx.fillStyle = "#27ae60"; ctx.fillRect(740, 160, 40, 80);
+            ctx.fillStyle = state.active; ctx.fillRect(player.x,player.y,20,20);
+            ctx.strokeStyle="white"; ctx.strokeRect(player.x,player.y,20,20);
 
             if(state.fog) {
-                ctx.save();
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.beginPath(); ctx.arc(player.x+10, player.y+10, 100, 0, Math.PI*2); ctx.fill();
-                ctx.restore();
+                ctx.save(); ctx.globalCompositeOperation='destination-in';
+                ctx.beginPath(); ctx.arc(player.x+10,player.y+10,110,0,Math.PI*2); ctx.fill(); ctx.restore();
             }
         }
 
         function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
         window.addEventListener("keydown", (e) => {
-            let nX = player.x, nY = player.y;
-            if(e.key === "ArrowUp") nY -= 15;
-            if(e.key === "ArrowDown") nY += 15;
-            if(e.key === "ArrowLeft") nX -= 15;
-            if(e.key === "ArrowRight") nX += 15;
-            if(e.key === "m") { state.bank += 100; save(); updateUI(); } // Dev Cheat
+            let nX = player.x, nY = player.y, s = 15;
+            if(e.key === "ArrowUp") nY -= s; if(e.key === "ArrowDown") nY += s;
+            if(e.key === "ArrowLeft") nX -= s; if(e.key === "ArrowRight") nX += s;
+            if(e.key === "m") { state.bank+=500; state.tokens+=100; state.xp+=200; save(); updateUI(); }
 
             let hit = false;
-            walls.forEach(w => { if(nX < w.x+w.w && nX+20 > w.x && nY < w.y+w.h && nY+20 > w.y) hit = true; });
-            
-            if(!hit && nX > 0 && nX < 780 && nY > 0 && nY < 430) {
+            walls.forEach(w => {if(nX<w.x+w.w && nX+20>w.x && nY<w.y+w.h && nY+20>w.y) hit=true;});
+            if(!hit && nX>0 && nX<780 && nY>0 && nY<380) {
                 player.x = nX; player.y = nY;
-                lava.forEach(l => { if(nX < l.x+l.w && nX+20 > l.x && nY < l.y+l.h && nY+20 > l.y) { player.x=30; player.y=30; bucket=0; updateUI(); }});
-                coins.forEach(c => { if(!c.c && Math.hypot(nX-c.x, nY-c.y) < 25) { c.c=true; bucket+=10; updateUI(); }});
-                if(nX > 730 && nY > 170 && nY < 270) { 
-                    state.bank += bucket; bucket = 0; state.level++; 
-                    save(); generateLevel(); updateUI(); 
+                lava.forEach(l => {if(nX<l.x+l.w && nX+20>l.x && nY<l.y+l.h && nY+20>l.y){player.x=30;player.y=30;bucket=0;bucketXP=0;updateUI();}});
+                coins.forEach(c => {if(!c.c && Math.hypot(nX-c.x,nY-c.y)<25){c.c=true;bucket+=10;updateUI();}});
+                xpOrbs.forEach(o => {if(!o.c && Math.hypot(nX-o.x,nY-o.y)<25){o.c=true;bucketXP+=25;updateUI();}});
+                
+                if(nX>730 && nY>150 && nY<250) { 
+                    state.bank += bucket; 
+                    state.xp += bucketXP;
+                    if(bucketXP > 0) state.tokens += 2; // Token reward for XP
+                    bucket = 0; bucketXP = 0;
+                    state.level++; save(); generate(); updateUI(); 
                 }
             }
-            draw();
         });
 
-        // Füge diese Verbesserungen in deinen bestehenden <script> Teil ein oder ersetze ihn:
+        // Reset HC tries every day
+        if(Date.now() - state.lastHC > 86400000) { state.hcTries = 5; state.lastHC = Date.now(); save(); }
 
-        function generateLevel() {
-            // Level-Größe variiert jetzt!
-            canvas.width = 600 + (state.level * 20 > 400 ? 400 : state.level * 20); 
-            
-            walls = [
-                {x:0,y:0,w:canvas.width,h:10},{x:0,y:440,w:canvas.width,h:10},
-                {x:0,y:0,w:10,h:450},{x:canvas.width-10,y:0,w:10,h:450}
-            ];
-            
-            // Komplexere Algorithmen für Wände
-            for(let i=0; i<8 + state.level; i++) {
-                walls.push({
-                    x: Math.random()*(canvas.width-200)+100, 
-                    y: Math.random()*300+50,
-                    w: Math.random()>0.5?15:100, 
-                    h: Math.random()>0.5?100:15
-                });
-            }
-
-            // Mehr Münzen = Mehr Gier!
-            coins = []; 
-            for(let i=0; i<5 + Math.floor(state.level/2); i++) {
-                coins.push({x: Math.random()*(canvas.width-100)+50, y:Math.random()*350+50, c:false});
-            }
-
-            // Fiese Lava
-            lava = []; 
-            for(let i=0; i<state.level + 2; i++) {
-                lava.push({
-                    x: Math.random()*(canvas.width-150)+100, 
-                    y: Math.random()*300+50, 
-                    w: 25 + (Math.random()*20), 
-                    h: 25 + (Math.random()*20),
-                    vx: (Math.random()-0.5) * 2, // Lava bewegt sich leicht!
-                    vy: (Math.random()-0.5) * 2
-                });
-            }
-            player.x = 30; player.y = 30;
-        }
-
-        // In der draw() Funktion für die Lava:
-        function moveLava() {
-            lava.forEach(l => {
-                l.x += l.vx;
-                l.y += l.vy;
-                // Lava prallt an Wänden ab
-                if(l.x < 10 || l.x + l.w > canvas.width - 10) l.vx *= -1;
-                if(l.y < 10 || l.y + l.h > 440) l.vy *= -1;
-            });
-        }
-
-        // Und im Game-Loop (unten beim Keydown oder in einem Intervall)
-        setInterval(() => {
-            moveLava();
-            draw();
-        }, 30);        generateLevel();
-        updateUI();
-        draw();
+        setInterval(draw, 30);
+        generate(); updateUI();
     </script>
 </body>
 </html>
