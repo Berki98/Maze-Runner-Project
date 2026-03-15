@@ -256,7 +256,64 @@
             draw();
         });
 
-        generateLevel();
+        // Füge diese Verbesserungen in deinen bestehenden <script> Teil ein oder ersetze ihn:
+
+        function generateLevel() {
+            // Level-Größe variiert jetzt!
+            canvas.width = 600 + (state.level * 20 > 400 ? 400 : state.level * 20); 
+            
+            walls = [
+                {x:0,y:0,w:canvas.width,h:10},{x:0,y:440,w:canvas.width,h:10},
+                {x:0,y:0,w:10,h:450},{x:canvas.width-10,y:0,w:10,h:450}
+            ];
+            
+            // Komplexere Algorithmen für Wände
+            for(let i=0; i<8 + state.level; i++) {
+                walls.push({
+                    x: Math.random()*(canvas.width-200)+100, 
+                    y: Math.random()*300+50,
+                    w: Math.random()>0.5?15:100, 
+                    h: Math.random()>0.5?100:15
+                });
+            }
+
+            // Mehr Münzen = Mehr Gier!
+            coins = []; 
+            for(let i=0; i<5 + Math.floor(state.level/2); i++) {
+                coins.push({x: Math.random()*(canvas.width-100)+50, y:Math.random()*350+50, c:false});
+            }
+
+            // Fiese Lava
+            lava = []; 
+            for(let i=0; i<state.level + 2; i++) {
+                lava.push({
+                    x: Math.random()*(canvas.width-150)+100, 
+                    y: Math.random()*300+50, 
+                    w: 25 + (Math.random()*20), 
+                    h: 25 + (Math.random()*20),
+                    vx: (Math.random()-0.5) * 2, // Lava bewegt sich leicht!
+                    vy: (Math.random()-0.5) * 2
+                });
+            }
+            player.x = 30; player.y = 30;
+        }
+
+        // In der draw() Funktion für die Lava:
+        function moveLava() {
+            lava.forEach(l => {
+                l.x += l.vx;
+                l.y += l.vy;
+                // Lava prallt an Wänden ab
+                if(l.x < 10 || l.x + l.w > canvas.width - 10) l.vx *= -1;
+                if(l.y < 10 || l.y + l.h > 440) l.vy *= -1;
+            });
+        }
+
+        // Und im Game-Loop (unten beim Keydown oder in einem Intervall)
+        setInterval(() => {
+            moveLava();
+            draw();
+        }, 30);        generateLevel();
         updateUI();
         draw();
     </script>
