@@ -1,21 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Berkis Maze Runner</title>
+    <title>Berkis Maze Runner + Shop</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        canvas { border: 4px solid #00ff00; background: #000; box-shadow: 0 0 20px rgba(0,255,0,0.3); }
-        .stats { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
-        .bucket { color: #ffd700; } .bank { color: #00ff00; margin-left: 20px; }
+        body { background: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        canvas { border: 4px solid #00ff00; background: #000; box-shadow: 0 0 30px rgba(0,255,0,0.2); cursor: crosshair; }
+        .ui { display: flex; gap: 30px; margin-bottom: 15px; font-size: 22px; background: rgba(255,255,255,0.1); padding: 10px 30px; border-radius: 15px; }
+        .bucket { color: #ffd700; } .bank { color: #00ff00; }
+        .shop-container { margin-top: 15px; display: flex; gap: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; background: #444; color: white; transition: 0.3s; }
+        button:hover { background: #666; }
+        #msg { margin-top: 10px; color: #ff4444; height: 20px; }
     </style>
 </head>
 <body>
-    <h1>Maze Runner 🪣</h1>
-    <div class="stats">
+
+    <h1>Maze Runner: Shop Edition 🛒</h1>
+    
+    <div class="ui">
         <span class="bucket">Eimer 🪣: <span id="bucketDisplay">0</span></span>
         <span class="bank">Konto 💰: <span id="bankDisplay">0</span></span>
     </div>
+
     <canvas id="mazeCanvas" width="500" height="400"></canvas>
+
+    <div class="shop-container">
+        <button onclick="buySkin('#0000ff', 30)">Blau-Skin (30 Gold)</button>
+        <button onclick="buySkin('#ff00ff', 50)">Pink-Skin (50 Gold)</button>
+        <button onclick="buySkin('#ffffff', 100)">White-Knight (100 Gold)</button>
+    </div>
+    <div id="msg"></div>
 
     <script>
         const canvas = document.getElementById("mazeCanvas");
@@ -24,32 +38,52 @@
         let player = { x: 25, y: 25, size: 20, color: "#00ff00" };
         let bucket = 0;
         let bank = 0;
+        let ownedSkins = ["#00ff00"];
 
-        // Die Wände
         const walls = [
             {x: 100, y: 0, w: 20, h: 300},
             {x: 250, y: 100, w: 20, h: 300},
             {x: 380, y: 0, w: 20, h: 250}
         ];
 
-        // Münzen (Gold)
         let coins = [
             {x: 150, y: 50, collected: false},
             {x: 320, y: 150, collected: false},
-            {x: 450, y: 300, collected: false}
+            {x: 450, y: 300, collected: false},
+            {x: 60, y: 350, collected: false},
+            {x: 200, y: 250, collected: false}
         ];
 
-        // Das Ziel (Eimer leeren)
         const goal = {x: 440, y: 20, w: 40, h: 40};
+
+        function buySkin(color, price) {
+            const msg = document.getElementById("msg");
+            if(ownedSkins.includes(color)) {
+                player.color = color;
+                msg.style.color = "#00ff00";
+                msg.innerText = "Skin gewechselt!";
+            } else if(bank >= price) {
+                bank -= price;
+                ownedSkins.push(color);
+                player.color = color;
+                document.getElementById("bankDisplay").innerText = bank;
+                msg.style.color = "#00ff00";
+                msg.innerText = "Gekauft und ausgerüstet!";
+            } else {
+                msg.style.color = "#ff4444";
+                msg.innerText = "Nicht genug Gold auf dem Konto!";
+            }
+            draw();
+        }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Wände zeichnen
+            // Wände
             ctx.fillStyle = "#ff4444";
             walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
 
-            // Münzen zeichnen
+            // Münzen
             ctx.fillStyle = "#ffd700";
             coins.forEach(c => {
                 if(!c.collected) {
@@ -59,51 +93,57 @@
                 }
             });
 
-            // Ziel zeichnen
+            // Ziel
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
             ctx.fillStyle = "#000";
+            ctx.font = "12px Arial";
             ctx.fillText("ZIEL", goal.x + 5, goal.y + 25);
 
-            // Spieler zeichnen
+            // Spieler
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x, player.y, player.size, player.size);
+            // Kleiner Leuchteffekt für den Spieler
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x, player.y, player.size, player.size);
         }
 
         window.addEventListener("keydown", (e) => {
             let nX = player.x, nY = player.y;
-            if(e.key === "ArrowUp") nY -= 15;
-            if(e.key === "ArrowDown") nY += 15;
-            if(e.key === "ArrowLeft") nX -= 15;
-            if(e.key === "ArrowRight") nX += 15;
+            const speed = 15;
+            if(e.key === "ArrowUp") nY -= speed;
+            if(e.key === "ArrowDown") nY += speed;
+            if(e.key === "ArrowLeft") nX -= speed;
+            if(e.key === "ArrowRight") nX += speed;
 
-            // Wand-Kollision
             let hitWall = false;
             walls.forEach(w => {
                 if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) hitWall = true;
             });
 
+            // Spielfeldrand
+            if(nX < 0 || nX + player.size > canvas.width || nY < 0 || nY + player.size > canvas.height) hitWall = true;
+
             if(!hitWall) {
                 player.x = nX; player.y = nY;
                 
-                // Münzen sammeln
                 coins.forEach(c => {
-                    if(!c.collected && Math.hypot(player.x - c.x, player.y - c.y) < 20) {
+                    if(!c.collected && Math.hypot(player.x + 10 - c.x, player.y + 10 - c.y) < 20) {
                         c.collected = true;
                         bucket += 10;
                         document.getElementById("bucketDisplay").innerText = bucket;
                     }
                 });
 
-                // Ziel erreichen (Bank)
                 if(player.x < goal.x + goal.w && player.x + player.size > goal.x && player.y < goal.y + goal.h && player.y + player.size > goal.y) {
                     bank += bucket;
                     bucket = 0;
                     document.getElementById("bucketDisplay").innerText = bucket;
                     document.getElementById("bankDisplay").innerText = bank;
-                    // Spieler zurücksetzen für "nächstes Level" Gefühl
-                    player.x = 20; player.y = 20;
+                    player.x = 25; player.y = 25;
                     coins.forEach(c => c.collected = false); 
+                    document.getElementById("msg").innerText = "Gold gesichert!";
                 }
             }
             draw();
