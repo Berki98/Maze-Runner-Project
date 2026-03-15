@@ -2,31 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Maze Runner: Infinity</title>
+    <title>Maze Runner: Berki Ultimate</title>
     <style>
-        :root { --primary: #3498db; --bg: #0a0a0a; --panel: #1a1a1a; }
+        :root { --primary: #3498db; --bg: #0a0a0a; --panel: #1a1a1a; --accent: #f1c40f; }
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
-        
-        /* Navigation */
-        .top-nav { display: flex; gap: 20px; padding: 20px; z-index: 10; }
-        .nav-box { border: 2px solid var(--primary); padding: 12px 30px; border-radius: 5px; background: var(--panel); cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .top-nav { display: flex; gap: 20px; padding: 15px; z-index: 10; }
+        .nav-box { border: 2px solid var(--primary); padding: 10px 25px; border-radius: 5px; background: var(--panel); cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.2s; }
+        .nav-box:hover { background: var(--primary); }
+        .stats { display: flex; gap: 40px; font-size: 22px; color: var(--accent); margin-bottom: 5px; font-weight: bold; }
 
-        .stats { display: flex; gap: 50px; font-size: 24px; color: #f1c40f; margin-bottom: 10px; }
+        /* Fullscreen Menu according to Berki's Drawing */
+        .menu-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,10,0.98); z-index: 1000; padding: 40px; box-sizing: border-box; }
+        .menu-layout { display: flex; width: 100%; height: 90%; gap: 40px; margin-top: 20px; }
+        
+        /* Left side: Grid */
+        .grid-area { flex: 2; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; padding-right: 20px; }
+        .item-tile { background: #222; border: 2px solid #444; aspect-ratio: 1; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .item-tile:hover { border-color: var(--primary); }
+        .item-tile.selected { border-color: var(--accent); background: #333; }
+        .tile-preview { width: 40px; height: 40px; border: 1px solid white; }
 
-        /* Fullscreen Menus */
-        .menu-screen { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,10,10,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        .menu-content { width: 80%; max-width: 900px; text-align: center; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; margin-top: 20px; }
-        .item-card { background: var(--panel); border: 2px solid #333; padding: 15px; border-radius: 10px; cursor: pointer; }
-        .item-card.active { border-color: var(--primary); }
-        .preview-box { width: 40px; height: 40px; margin: 10px auto; border: 1px solid white; }
+        /* Right side: Preview (Exactly like Berki's drawing) */
+        .preview-area { flex: 1; background: var(--panel); border: 3px solid var(--primary); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .big-preview { width: 100px; height: 100px; border: 4px solid white; margin-bottom: 30px; }
+        .action-btn { width: 80%; padding: 15px; font-size: 20px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .btn-equip { background: #27ae60; color: white; }
+        .btn-unequip { background: #e67e22; color: white; }
+        .btn-buy { background: var(--accent); color: black; }
 
-        .close-x { position: absolute; top: 30px; right: 50px; font-size: 40px; cursor: pointer; color: #e74c3c; }
-        
-        canvas { background: #000; border: 4px solid #333; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        
-        section { margin-top: 30px; border-top: 1px solid #333; padding-top: 10px; width: 100%; }
+        .close-btn { position: absolute; top: 20px; right: 40px; font-size: 40px; color: #e74c3c; cursor: pointer; }
+        canvas { border: 4px solid #333; background: #000; box-shadow: 0 0 40px black; }
     </style>
 </head>
 <body>
@@ -38,130 +43,195 @@
     </div>
 
     <div class="stats">
-        <span>LVL: <span id="lvl">1</span></span>
-        <span>BUCKET: <span id="buck">0</span></span>
-        <span>BANK: <span id="bnk">0</span></span>
+        <span>LVL: <span id="ui-lvl">1</span></span>
+        <span>GOLD: <span id="ui-bank">0</span> 💰</span>
+        <span>CARRY: <span id="ui-buck">0</span> 🪣</span>
     </div>
 
-    <canvas id="c" width="800" height="500"></canvas>
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
 
-    <div id="shopMenu" class="menu-screen">
-        <span class="close-x" onclick="closeAll()">×</span>
-        <div class="menu-content">
-            <h1>GLOBAL SHOP</h1>
-            <section>
-                <h3>PLAYER SKINS</h3>
-                <div class="grid">
-                    <div class="item-card" onclick="buySkin('Neon', 50, '#00ff00')">Neon (50G)</div>
-                    <div class="item-card" onclick="buySkin('Gold', 150, '#f1c40f')">Royal Gold (150G)</div>
-                    <div class="item-card" onclick="buySkin('Shadow', 300, '#555')">Shadow (300G)</div>
-                </div>
-            </section>
-            <section>
-                <h3>MAZE THEMES</h3>
-                <div class="grid">
-                    <div class="item-card" onclick="buyMaze('#e74c3c', 100)">Lava Theme (100G)</div>
-                    <div class="item-card" onclick="buyMaze('#9b59b6', 200)">Void Theme (200G)</div>
-                </div>
-            </section>
+    <div id="skinMenu" class="menu-screen">
+        <span class="close-btn" onclick="closeMenus()">×</span>
+        <h1>CHARACTER SKINS</h1>
+        <div class="menu-layout">
+            <div id="skinGrid" class="grid-area"></div>
+            <div class="preview-area">
+                <div id="p-skin-box" class="big-preview"></div>
+                <h2 id="p-skin-name">Select a Skin</h2>
+                <button id="p-skin-btn" class="action-btn" onclick="handleSkinAction()">Action</button>
+            </div>
         </div>
     </div>
 
-    <div id="skinMenu" class="menu-screen">
-        <span class="close-x" onclick="closeAll()">×</span>
-        <div class="menu-content" id="skinList">
-            <h1>YOUR SKINS</h1>
-            <div class="grid" id="ownedSkinsGrid">
-                </div>
+    <div id="shopMenu" class="menu-screen">
+        <span class="close-btn" onclick="closeMenus()">×</span>
+        <h1>GLOBAL SHOP</h1>
+        <div class="menu-layout">
+            <div id="shopGrid" class="grid-area"></div>
+            <div class="preview-area">
+                <div id="s-item-box" class="big-preview"></div>
+                <h2 id="s-item-name">Select Item</h2>
+                <p id="s-item-cost"></p>
+                <button id="s-item-btn" class="action-btn btn-buy" onclick="handleShopAction()">Buy</button>
+            </div>
         </div>
     </div>
 
     <div id="settingsMenu" class="menu-screen">
-        <span class="close-x" onclick="closeAll()">×</span>
-        <div class="menu-content">
+        <span class="close-btn" onclick="closeMenus()">×</span>
+        <div style="text-align:center; width:100%; margin-top:100px;">
             <h1>SETTINGS</h1>
-            <button class="nav-box" onclick="toggleFog()">Toggle Visibility Fog: <span id="fogStatus">ON</span></button>
+            <button class="nav-box" onclick="toggleFog()">Fog of War: <span id="fog-status">ON</span></button>
+            <p>Your progress is automatically saved to this browser.</p>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById("c");
+        const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let bank = 0, bucket = 0, level = 1, fog = true;
-        let pColor = "#00ff00", mColor = "#3498db";
-        let player = { x: 40, y: 40, size: 20 };
-        let walls = [], coins = [], lava = [], ownedSkins = ['#00ff00'];
+        // Game State & Save Logic
+        let state = JSON.parse(localStorage.getItem('mazeRunnerSave')) || {
+            bank: 0, level: 1, 
+            ownedSkins: ['#00ff00'], 
+            activeSkin: '#00ff00',
+            mazeColor: '#3498db',
+            fog: true
+        };
 
-        function openMenu(id) { document.getElementById(id).style.display = 'flex'; renderSkins(); }
-        function closeAll() { document.querySelectorAll('.menu-screen').forEach(s => s.style.display='none'); }
-        function toggleFog() { fog = !fog; document.getElementById('fogStatus').innerText = fog ? "ON" : "OFF"; draw(); }
+        function save() { localStorage.setItem('mazeRunnerSave', JSON.stringify(state)); }
 
-        function generateLevel() {
-            walls = [
-                {x:0, y:0, w:800, h:10}, {x:0, y:490, w:800, h:10},
-                {x:0, y:0, w:10, h:500}, {x:790, y:0, w:10, h:500}
-            ];
-            // Zufällige Wände basierend auf Level
-            for(let i=0; i<6 + level; i++) {
-                walls.push({
-                    x: Math.random() * 600 + 100,
-                    y: Math.random() * 300 + 50,
-                    w: Math.random() > 0.5 ? 10 : 150,
-                    h: Math.random() > 0.5 ? 150 : 10
-                });
-            }
-            coins = []; for(let i=0; i<5; i++) coins.push({x: Math.random()*700+50, y:Math.random()*400+50, c:false});
-            lava = []; for(let i=0; i<level+2; i++) lava.push({x: Math.random()*600+100, y:Math.random()*300+100, w:40, h:40});
-            player.x = 30; player.y = 30;
+        let bucket = 0;
+        let player = { x: 30, y: 30, size: 20 };
+        let walls = [], coins = [], lava = [];
+        let selectedSkin = state.activeSkin;
+        let selectedShopItem = null;
+
+        const allSkins = [
+            {id: '#00ff00', name: 'Neon Green', cost: 0},
+            {id: '#3498db', name: 'Ocean Blue', cost: 50},
+            {id: '#f1c40f', name: 'Pure Gold', cost: 150},
+            {id: '#e74c3c', name: 'Fire Red', cost: 200},
+            {id: '#9b59b6', name: 'Shadow Purple', cost: 300},
+            {id: '#ffffff', name: 'Ghost', cost: 500}
+        ];
+
+        // Functions
+        function openMenu(id) { 
+            document.getElementById(id).style.display = 'block'; 
+            if(id === 'skinMenu') renderSkinGrid();
+            if(id === 'shopMenu') renderShopGrid();
         }
+        function closeMenus() { document.querySelectorAll('.menu-screen').forEach(m => m.style.display='none'); }
+        function toggleFog() { state.fog = !state.fog; document.getElementById('fog-status').innerText = state.fog ? "ON" : "OFF"; save(); draw(); }
 
-        function buySkin(name, price, color) {
-            if(bank >= price && !ownedSkins.includes(color)) {
-                bank -= price; ownedSkins.push(color);
-                updateStats(); alert(name + " purchased!");
-            } else { alert("Already owned or too poor!"); }
-        }
-
-        function buyMaze(color, price) {
-            if(bank >= price) { bank -= price; mColor = color; updateStats(); alert("Maze Theme changed!"); }
-        }
-
-        function renderSkins() {
-            const grid = document.getElementById('ownedSkinsGrid');
+        function renderSkinGrid() {
+            const grid = document.getElementById('skinGrid');
             grid.innerHTML = '';
-            ownedSkins.forEach(s => {
-                grid.innerHTML += `<div class="item-card" onclick="pColor='${s}'; closeAll(); draw();">
-                    <div class="preview-box" style="background:${s}"></div>
-                    ${pColor === s ? 'EQUIPPED' : 'EQUIP'}
-                </div>`;
+            allSkins.forEach(skin => {
+                if(state.ownedSkins.includes(skin.id)) {
+                    let div = document.createElement('div');
+                    div.className = `item-tile ${selectedSkin === skin.id ? 'selected' : ''}`;
+                    div.innerHTML = `<div class="tile-preview" style="background:${skin.id}"></div>`;
+                    div.onclick = () => selectSkin(skin);
+                    grid.appendChild(div);
+                }
+            });
+            selectSkin(allSkins.find(s => s.id === selectedSkin));
+        }
+
+        function selectSkin(skin) {
+            selectedSkin = skin.id;
+            document.getElementById('p-skin-box').style.background = skin.id;
+            document.getElementById('p-skin-name').innerText = skin.name;
+            const btn = document.getElementById('p-skin-btn');
+            if(state.activeSkin === skin.id) {
+                btn.innerText = "Equipped"; btn.className = "action-btn btn-unequip";
+            } else {
+                btn.innerText = "Equip"; btn.className = "action-btn btn-equip";
+            }
+            renderSkinGrid();
+        }
+
+        function handleSkinAction() {
+            state.activeSkin = selectedSkin;
+            save(); renderSkinGrid(); draw();
+        }
+
+        function renderShopGrid() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = '';
+            allSkins.forEach(skin => {
+                if(!state.ownedSkins.includes(skin.id)) {
+                    let div = document.createElement('div');
+                    div.className = "item-tile";
+                    div.innerHTML = `<div class="tile-preview" style="background:${skin.id}"></div>`;
+                    div.onclick = () => selectShopItem(skin);
+                    grid.appendChild(div);
+                }
             });
         }
 
-        function updateStats() {
-            document.getElementById('lvl').innerText = level;
-            document.getElementById('buck').innerText = bucket;
-            document.getElementById('bnk').innerText = bank;
+        function selectShopItem(item) {
+            selectedShopItem = item;
+            document.getElementById('s-item-box').style.background = item.id;
+            document.getElementById('s-item-name').innerText = item.name;
+            document.getElementById('s-item-cost').innerText = `Cost: ${item.cost} Gold`;
+        }
+
+        function handleShopAction() {
+            if(selectedShopItem && state.bank >= selectedShopItem.cost) {
+                state.bank -= selectedShopItem.cost;
+                state.ownedSkins.push(selectedShopItem.id);
+                save(); updateUI(); renderShopGrid();
+                alert("Purchased!");
+            } else { alert("Not enough gold!"); }
+        }
+
+        function generateLevel() {
+            walls = [
+                {x:0,y:0,w:800,h:10},{x:0,y:440,w:800,h:10},
+                {x:0,y:0,w:10,h:450},{x:790,y:0,w:10,h:450}
+            ];
+            for(let i=0; i<5+state.level; i++) {
+                walls.push({
+                    x: Math.random()*600+100, y: Math.random()*300+50,
+                    w: Math.random()>0.5?10:120, h: Math.random()>0.5?120:10
+                });
+            }
+            coins = []; for(let i=0; i<6; i++) coins.push({x: Math.random()*700+50, y: Math.random()*350+50, c:false});
+            lava = []; for(let i=0; i<state.level; i++) lava.push({x: Math.random()*600+100, y: Math.random()*300+50, w:30, h:30});
+            player.x = 30; player.y = 30;
+        }
+
+        function updateUI() {
+            document.getElementById('ui-lvl').innerText = state.level;
+            document.getElementById('ui-bank').innerText = state.bank;
+            document.getElementById('ui-buck').innerText = bucket;
         }
 
         function draw() {
-            ctx.clearRect(0,0,800,500);
-            ctx.fillStyle = mColor; walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+            ctx.clearRect(0,0,800,450);
+            ctx.fillStyle = state.mazeColor;
+            walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
             ctx.fillStyle = "#e74c3c"; lava.forEach(l => ctx.fillRect(l.x, l.y, l.w, l.h));
-            ctx.fillStyle = "#f1c40f"; coins.forEach(c => { if(!c.c) {ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill();} });
+            ctx.fillStyle = varColor('--accent');
+            coins.forEach(c => { if(!c.c) { ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill(); }});
             
-            ctx.fillStyle = "#27ae60"; ctx.fillRect(740, 400, 40, 80); // Goal
+            ctx.fillStyle = "#27ae60"; ctx.fillRect(740, 180, 40, 80); // Goal
             
-            ctx.fillStyle = pColor; ctx.fillRect(player.x, player.y, player.size, player.size);
-            ctx.strokeStyle = "white"; ctx.strokeRect(player.x, player.y, player.size, player.size);
+            ctx.fillStyle = state.activeSkin; ctx.fillRect(player.x, player.y, 20, 20);
+            ctx.strokeStyle = "white"; ctx.strokeRect(player.x, player.y, 20, 20);
 
-            if(fog) {
+            if(state.fog) {
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-in';
-                ctx.beginPath(); ctx.arc(player.x + 10, player.y + 10, 120, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(player.x+10, player.y+10, 100, 0, Math.PI*2); ctx.fill();
                 ctx.restore();
             }
         }
+
+        function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
         window.addEventListener("keydown", (e) => {
             let nX = player.x, nY = player.y;
@@ -169,21 +239,25 @@
             if(e.key === "ArrowDown") nY += 15;
             if(e.key === "ArrowLeft") nX -= 15;
             if(e.key === "ArrowRight") nX += 15;
-            if(e.key === "m") { bank += 100; updateStats(); }
+            if(e.key === "m") { state.bank += 100; save(); updateUI(); } // Dev Cheat
 
             let hit = false;
             walls.forEach(w => { if(nX < w.x+w.w && nX+20 > w.x && nY < w.y+w.h && nY+20 > w.y) hit = true; });
             
-            if(!hit && nX > 0 && nX < 780 && nY > 0 && nY < 480) {
+            if(!hit && nX > 0 && nX < 780 && nY > 0 && nY < 430) {
                 player.x = nX; player.y = nY;
-                lava.forEach(l => { if(nX < l.x+l.w && nX+20 > l.x && nY < l.y+l.h && nY+20 > l.y) { player.x=30; player.y=30; bucket=0; updateStats(); }});
-                coins.forEach(c => { if(!c.c && Math.hypot(nX-c.x, nY-c.y) < 25) { c.c=true; bucket+=10; updateStats(); }});
-                if(nX > 730 && nY > 390) { bank += bucket; bucket = 0; level++; generateLevel(); updateStats(); }
+                lava.forEach(l => { if(nX < l.x+l.w && nX+20 > l.x && nY < l.y+l.h && nY+20 > l.y) { player.x=30; player.y=30; bucket=0; updateUI(); }});
+                coins.forEach(c => { if(!c.c && Math.hypot(nX-c.x, nY-c.y) < 25) { c.c=true; bucket+=10; updateUI(); }});
+                if(nX > 730 && nY > 170 && nY < 270) { 
+                    state.bank += bucket; bucket = 0; state.level++; 
+                    save(); generateLevel(); updateUI(); 
+                }
             }
             draw();
         });
 
         generateLevel();
+        updateUI();
         draw();
     </script>
 </body>
