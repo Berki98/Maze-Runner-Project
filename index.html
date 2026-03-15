@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Berkis Maze Runner</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        canvas { border: 4px solid #00ff00; background: #000; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+        .stats { font-size: 20px; margin: 10px; color: #ffd700; }
+    </style>
+</head>
+<body>
+    <h1>Maze Runner v1.0 🪣</h1>
+    <div class="stats">Eimer 🪣: <span id="bucket">0</span> | Konto 💰: <span id="bank">0</span></div>
+    <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("mazeCanvas");
+        const ctx = canvas.getContext("2d");
+        let player = { x: 20, y: 20, size: 15, color: "#00ff00" };
+        const walls = [{x: 50, y: 0, w: 10, h: 300}, {x: 150, y: 100, w: 10, h: 300}];
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff4444";
+            walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+        }
+        window.addEventListener("keydown", (e) => {
+            let nX = player.x, nY = player.y;
+            if(e.key === "ArrowUp") nY -= 10;
+            if(e.key === "ArrowDown") nY += 10;
+            if(e.key === "ArrowLeft") nX -= 10;
+            if(e.key === "ArrowRight") nX += 10;
+            let collision = false;
+            walls.forEach(w => { if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) collision = true; });
+            if(!collision) { player.x = nX; player.y = nY; }
+            draw();
+        });
+        draw();
+    </script>
+</body>
+</html>
