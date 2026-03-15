@@ -2,199 +2,191 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Maze Runner Pro - Berki Edition</title>
+    <title>Maze Runner: Life of Quality</title>
     <style>
-        body { background: #121212; color: white; font-family: 'Segoe UI', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding-top: 20px; overflow: hidden; }
-        .top-nav { display: flex; gap: 20px; margin-bottom: 20px; z-index: 10; }
-        .nav-box { border: 3px solid #3498db; padding: 12px 25px; border-radius: 10px; background: #1e1e1e; cursor: pointer; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 0 #2980b9; }
-        .nav-box:active { transform: translateY(4px); box-shadow: none; }
-        .stats-bar { display: flex; gap: 40px; font-size: 24px; margin-bottom: 15px; color: #f1c40f; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        canvas { border: 6px solid #333; background: #000; border-radius: 5px; cursor: none; }
-        .overlay { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e1e1e; border: 4px solid #3498db; padding: 25px; border-radius: 20px; z-index: 100; width: 320px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.9); }
-        .skin-btn { width: 100%; margin: 8px 0; padding: 12px; cursor: pointer; background: #34495e; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; }
-        .skin-btn:hover { background: #2c3e50; border: 1px solid #3498db; }
-        .close-btn { margin-top: 15px; background: #e74c3c; padding: 10px 20px; cursor: pointer; border-radius: 8px; display: inline-block; font-weight: bold; }
+        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding-top: 10px; overflow: hidden; }
+        .top-nav { display: flex; gap: 15px; margin-bottom: 10px; z-index: 100; }
+        .nav-box { border: 2px solid #3498db; padding: 10px 20px; border-radius: 8px; background: #1a1a1a; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .nav-box:hover { background: #3498db; }
+        .story-btn { border-color: #e74c3c; color: #e74c3c; }
+        .stats-bar { display: flex; gap: 30px; font-size: 20px; margin-bottom: 5px; color: #f1c40f; font-weight: bold; }
+        #gameContainer { position: relative; border: 4px solid #333; line-height: 0; }
+        canvas { background: #000; }
+        .overlay { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e1e1e; border: 3px solid #3498db; padding: 20px; border-radius: 15px; z-index: 200; width: 300px; text-align: center; }
+        .skin-btn { width: 100%; margin: 5px 0; padding: 10px; cursor: pointer; background: #333; color: white; border: none; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="top-nav">
         <div class="nav-box" onclick="toggleMenu('shopMenu')">SHOP 🛒</div>
+        <div class="nav-box story-btn" onclick="startStory()">STORY MODE 📖</div>
         <div class="nav-box" onclick="toggleMenu('skinMenu')">SKINS ✨</div>
     </div>
 
     <div class="stats-bar">
-        <span>Eimer 🪣: <span id="bucketVal">0</span></span>
-        <span>Konto 💰: <span id="bankVal">0</span></span>
+        <span>Level: <span id="lvlDisplay">1</span></span>
+        <span>Eimer: <span id="bucketVal">0</span> 🪣</span>
+        <span>Konto: <span id="bankVal">0</span> 💰</span>
     </div>
 
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
 
     <div id="shopMenu" class="overlay">
-        <h2 style="color:#f1c40f">MAZE SHOP</h2>
-        <button class="skin-btn" onclick="buyWall('#e67e22', 20)">Orange Wände (20G)</button>
-        <button class="skin-btn" onclick="buyWall('#9b59b6', 50)">Lila Wände (50G)</button>
-        <button class="skin-btn" onclick="buyWall('#00ff00', 100)">Neon Green (100G)</button>
-        <div class="close-btn" onclick="toggleMenu('shopMenu')">Schließen</div>
+        <h2 style="color:#f1c40f">SHOP</h2>
+        <button class="skin-btn" onclick="buyDifficulty('Medium', 50)">Medium Maze (50G)</button>
+        <button class="skin-btn" onclick="buyDifficulty('Hard', 150)">ULTRA HARD (150G)</button>
+        <div onclick="toggleMenu('shopMenu')" style="cursor:pointer; margin-top:10px; color:#e74c3c">Schließen</div>
     </div>
 
     <div id="skinMenu" class="overlay">
-        <h2 style="color:#3498db">PLAYER SKINS</h2>
-        <button class="skin-btn" style="color:#00ff00" onclick="setPlayer('#00ff00')">Neon Green</button>
-        <button class="skin-btn" style="color:#3498db" onclick="setPlayer('#3498db')">Ice Blue</button>
-        <button class="skin-btn" style="color:#e74c3c" onclick="setPlayer('#e74c3c')">Fire Red</button>
-        <div class="close-btn" onclick="toggleMenu('skinMenu')">Schließen</div>
+        <h2 style="color:#3498db">SKINS</h2>
+        <button class="skin-btn" onclick="setPlayer('#00ff00')">Standard Green</button>
+        <button class="skin-btn" onclick="setPlayer('#f1c40f')">Golden Skin (Free)</button>
+        <button class="skin-btn" onclick="setPlayer('#9b59b6')">Purple Ghost</button>
+        <div onclick="toggleMenu('skinMenu')" style="cursor:pointer; margin-top:10px; color:#e74c3c">Schließen</div>
     </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Spiel-Variablen
-        let bank = 0;
-        let bucket = 0;
-        let wallColor = "#34495e";
-        let player = { x: 20, y: 360, size: 20, color: "#00ff00" };
+        let bank = 0, bucket = 0, level = 1;
+        let player = { x: 30, y: 360, size: 18, color: "#00ff00" };
+        let lava = [];
+        let coins = [];
+        let difficulty = "Easy";
 
-        // Labyrinth-Wände (Basierend auf deiner Skizze)
         const walls = [
-            // Außenwände
             {x: 0, y: 0, w: 600, h: 10}, {x: 0, y: 390, w: 600, h: 10},
-            {x: 0, y: 0, w: 10, h: 340}, {x: 590, y: 0, w: 10, h: 150}, {x: 590, y: 250, w: 10, h: 150},
-            
-            // Das Labyrinth (jetzt mit Lücken!)
-            {x: 80, y: 80, w: 10, h: 250},   // Vertikale Wand links
-            {x: 80, y: 80, w: 150, h: 10},  // Obere Wand
-            {x: 180, y: 150, w: 10, h: 150}, // Mittlere Wand
-            {x: 180, y: 300, w: 100, h: 10}, // Untere Sperre (mit Lücke rechts)
-            {x: 350, y: 0, w: 10, h: 200},   // Trennwand oben (Lücke unten)
-            {x: 350, y: 280, w: 10, h: 110}, // Trennwand unten (Lücke oben)
-            {x: 450, y: 100, w: 10, h: 200}, // Hindernis vor dem Ziel
-            {x: 450, y: 100, w: 140, h: 10}  // Sackgasse oben rechts
-        ];
-        
-        // Münzen
-        let coins = [
-            {x: 50, y: 50, collected: false}, {x: 250, y: 50, collected: false},
-            {x: 150, y: 250, collected: false}, {x: 350, y: 350, collected: false},
-            {x: 550, y: 350, collected: false}
+            {x: 0, y: 0, w: 10, h: 350}, {x: 590, y: 0, w: 10, h: 150}, {x: 590, y: 250, w: 10, h: 150},
+            {x: 100, y: 100, w: 10, h: 300}, {x: 250, y: 0, w: 10, h: 250},
+            {x: 400, y: 150, w: 200, h: 10}, {x: 400, y: 250, w: 10, h: 150}
         ];
 
-        const goal = {x: 560, y: 160, w: 30, h: 80};
+        const goal = {x: 560, y: 170, w: 30, h: 60};
 
-        // Funktionen
+        function spawnLava() {
+            lava = [];
+            let count = level + 3; 
+            for(let i=0; i<count; i++) {
+                lava.push({
+                    x: Math.random() * 500 + 50,
+                    y: Math.random() * 300 + 50,
+                    w: 30 + (level * 5),
+                    h: 30 + (level * 5)
+                });
+            }
+        }
+
+        function spawnCoins() {
+            coins = [];
+            let count = (level % 3 === 0) ? 8 : 4; // Bonus Level alle 3 Level
+            for(let i=0; i<count; i++) {
+                coins.push({ x: Math.random() * 550 + 20, y: Math.random() * 350 + 20, collected: false });
+            }
+        }
+
         function toggleMenu(id) {
             const m = document.getElementById(id);
             m.style.display = (m.style.display === "block") ? "none" : "block";
         }
 
-        function setPlayer(color) {
-            player.color = color;
-            toggleMenu('skinMenu');
-            draw();
+        function startStory() {
+            alert("STORY: Du bist Berki, der letzte Maze-Runner. Sammle Gold, um die Dunkelheit zu besiegen!");
         }
 
-        function buyWall(color, price) {
+        function setPlayer(c) { player.color = c; toggleMenu('skinMenu'); draw(); }
+
+        function buyDifficulty(d, price) {
             if(bank >= price) {
-                bank -= price;
-                wallColor = color;
-                updateStats();
-                toggleMenu('shopMenu');
-                draw();
-            } else {
-                alert("Nicht genug Gold auf dem Konto!");
-            }
+                bank -= price; difficulty = d;
+                alert("Modus " + d + " aktiviert!");
+                updateStats(); toggleMenu('shopMenu');
+            } else { alert("Zu wenig Gold!"); }
         }
 
         function updateStats() {
             document.getElementById("bucketVal").innerText = bucket;
             document.getElementById("bankVal").innerText = bank;
+            document.getElementById("lvlDisplay").innerText = level;
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Wände zeichnen
-            ctx.fillStyle = wallColor;
+            
+            // 1. Alles zeichnen
+            ctx.fillStyle = "#34495e";
             walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+            
+            ctx.fillStyle = "#e67e22"; // Lava
+            lava.forEach(l => ctx.fillRect(l.x, l.y, l.w, l.h));
 
-            // Münzen zeichnen
-            ctx.fillStyle = "#f1c40f";
+            ctx.fillStyle = "#f1c40f"; // Münzen
             coins.forEach(c => {
-                if(!c.collected) {
-                    ctx.beginPath();
-                    ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
-                    ctx.fill();
-                }
+                if(!c.collected) { ctx.beginPath(); ctx.arc(c.x, c.y, 7, 0, Math.PI*2); ctx.fill(); }
             });
 
-            // Ziel zeichnen
-            ctx.fillStyle = "#27ae60";
+            ctx.fillStyle = "#27ae60"; // Ziel
             ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
-            ctx.fillStyle = "white";
-            ctx.font = "bold 12px Arial";
-            ctx.fillText("BANK", goal.x - 5, goal.y - 5);
 
-            // Spieler zeichnen
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x, player.y, player.size, player.size);
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(player.x, player.y, player.size, player.size);
+
+            // 2. AMONG US EFFEKT (FOG OF WAR)
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.arc(player.x + 9, player.y + 9, 100, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
         }
 
-        // Steuerung
         window.addEventListener("keydown", (e) => {
-            let nX = player.x;
-            let nY = player.y;
-            const speed = 10;
-
+            let nX = player.x, nY = player.y;
+            const speed = 12;
             if(e.key === "ArrowUp") nY -= speed;
             if(e.key === "ArrowDown") nY += speed;
             if(e.key === "ArrowLeft") nX -= speed;
             if(e.key === "ArrowRight") nX += speed;
-            
-            // CHEAT CODE: Taste M für Geld
-            if(e.key === "m" || e.key === "M") {
-                bank += 100;
-                updateStats();
-            }
+            if(e.key === "m") { bank += 50; updateStats(); } // Cheat
 
-            // Kollisionsprüfung
-            let hit = false;
+            let hitWall = false;
             walls.forEach(w => {
-                if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) hit = true;
+                if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) hitWall = true;
             });
 
-            // Spielfeldrand
-            if(nX < 0 || nX + player.size > 600 || nY < 0 || nY + player.size > 400) hit = true;
+            if(!hitWall && nX > 0 && nX < 580 && nY > 0 && nY < 380) {
+                player.x = nX; player.y = nY;
 
-            if(!hit) {
-                player.x = nX;
-                player.y = nY;
-
-                // Münzen sammeln
-                coins.forEach(c => {
-                    if(!c.collected && Math.hypot(player.x + 10 - c.x, player.y + 10 - c.y) < 20) {
-                        c.collected = true;
-                        bucket += 10;
-                        updateStats();
+                // Lava Check
+                lava.forEach(l => {
+                    if (player.x < l.x + l.w && player.x + player.size > l.x && player.y < l.y + l.h && player.y + player.size > l.y) {
+                        player.x = 30; player.y = 360; bucket = 0; updateStats(); // Reset bei Lava
                     }
                 });
 
-                // Ziel erreichen
+                // Münzen Check
+                coins.forEach(c => {
+                    if(!c.collected && Math.hypot(player.x - c.x, player.y - c.y) < 20) {
+                        c.collected = true; bucket += 10; updateStats();
+                    }
+                });
+
+                // Ziel Check
                 if(player.x + player.size > goal.x && player.y > goal.y && player.y < goal.y + goal.h) {
-                    bank += bucket;
-                    bucket = 0;
-                    updateStats();
-                    player.x = 20; player.y = 360; // Zurück zum Start
-                    coins.forEach(c => c.collected = false); // Münzen respawn
+                    bank += bucket; bucket = 0; level++;
+                    player.x = 30; player.y = 360;
+                    spawnLava(); spawnCoins(); updateStats();
                 }
             }
             draw();
         });
 
-        // Start-Draw
+        spawnLava();
+        spawnCoins();
         draw();
     </script>
 </body>
