@@ -3,38 +3,112 @@
 <head>
     <title>Berkis Maze Runner</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        canvas { border: 4px solid #00ff00; background: #000; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
-        .stats { font-size: 20px; margin: 10px; color: #ffd700; }
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        canvas { border: 4px solid #00ff00; background: #000; box-shadow: 0 0 20px rgba(0,255,0,0.3); }
+        .stats { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
+        .bucket { color: #ffd700; } .bank { color: #00ff00; margin-left: 20px; }
     </style>
 </head>
 <body>
-    <h1>Maze Runner v1.0 🪣</h1>
-    <div class="stats">Eimer 🪣: <span id="bucket">0</span> | Konto 💰: <span id="bank">0</span></div>
-    <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    <h1>Maze Runner 🪣</h1>
+    <div class="stats">
+        <span class="bucket">Eimer 🪣: <span id="bucketDisplay">0</span></span>
+        <span class="bank">Konto 💰: <span id="bankDisplay">0</span></span>
+    </div>
+    <canvas id="mazeCanvas" width="500" height="400"></canvas>
+
     <script>
         const canvas = document.getElementById("mazeCanvas");
         const ctx = canvas.getContext("2d");
-        let player = { x: 20, y: 20, size: 15, color: "#00ff00" };
-        const walls = [{x: 50, y: 0, w: 10, h: 300}, {x: 150, y: 100, w: 10, h: 300}];
+
+        let player = { x: 25, y: 25, size: 20, color: "#00ff00" };
+        let bucket = 0;
+        let bank = 0;
+
+        // Die Wände
+        const walls = [
+            {x: 100, y: 0, w: 20, h: 300},
+            {x: 250, y: 100, w: 20, h: 300},
+            {x: 380, y: 0, w: 20, h: 250}
+        ];
+
+        // Münzen (Gold)
+        let coins = [
+            {x: 150, y: 50, collected: false},
+            {x: 320, y: 150, collected: false},
+            {x: 450, y: 300, collected: false}
+        ];
+
+        // Das Ziel (Eimer leeren)
+        const goal = {x: 440, y: 20, w: 40, h: 40};
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Wände zeichnen
             ctx.fillStyle = "#ff4444";
             walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+
+            // Münzen zeichnen
+            ctx.fillStyle = "#ffd700";
+            coins.forEach(c => {
+                if(!c.collected) {
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Ziel zeichnen
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+            ctx.fillStyle = "#000";
+            ctx.fillText("ZIEL", goal.x + 5, goal.y + 25);
+
+            // Spieler zeichnen
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x, player.y, player.size, player.size);
         }
+
         window.addEventListener("keydown", (e) => {
             let nX = player.x, nY = player.y;
-            if(e.key === "ArrowUp") nY -= 10;
-            if(e.key === "ArrowDown") nY += 10;
-            if(e.key === "ArrowLeft") nX -= 10;
-            if(e.key === "ArrowRight") nX += 10;
-            let collision = false;
-            walls.forEach(w => { if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) collision = true; });
-            if(!collision) { player.x = nX; player.y = nY; }
+            if(e.key === "ArrowUp") nY -= 15;
+            if(e.key === "ArrowDown") nY += 15;
+            if(e.key === "ArrowLeft") nX -= 15;
+            if(e.key === "ArrowRight") nX += 15;
+
+            // Wand-Kollision
+            let hitWall = false;
+            walls.forEach(w => {
+                if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) hitWall = true;
+            });
+
+            if(!hitWall) {
+                player.x = nX; player.y = nY;
+                
+                // Münzen sammeln
+                coins.forEach(c => {
+                    if(!c.collected && Math.hypot(player.x - c.x, player.y - c.y) < 20) {
+                        c.collected = true;
+                        bucket += 10;
+                        document.getElementById("bucketDisplay").innerText = bucket;
+                    }
+                });
+
+                // Ziel erreichen (Bank)
+                if(player.x < goal.x + goal.w && player.x + player.size > goal.x && player.y < goal.y + goal.h && player.y + player.size > goal.y) {
+                    bank += bucket;
+                    bucket = 0;
+                    document.getElementById("bucketDisplay").innerText = bucket;
+                    document.getElementById("bankDisplay").innerText = bank;
+                    // Spieler zurücksetzen für "nächstes Level" Gefühl
+                    player.x = 20; player.y = 20;
+                    coins.forEach(c => c.collected = false); 
+                }
+            }
             draw();
         });
+
         draw();
     </script>
 </body>
