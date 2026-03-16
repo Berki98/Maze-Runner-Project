@@ -1,39 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <title>Maze Runner XP Edition</title>
+    <meta charset="UTF-8">
+    <title>Maze Runner: The Ultimate XP Edition</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        body { background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
         
-        /* Fullscreen Layout */
-        #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* Navigations-Leiste oben */
+        .top-nav { position: absolute; top: 10px; display: flex; gap: 15px; z-index: 100; }
+        .nav-box { border: 2px solid #3498db; padding: 8px 15px; border-radius: 8px; background: #1a1a1a; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .nav-box:hover { background: #3498db; }
+        .story-btn { border-color: #e74c3c; color: #e74c3c; }
 
-        /* XP Bar am unteren Bildschirmrand */
-        .xp-container { position: absolute; bottom: 20px; width: 80%; background: #333; height: 30px; border-radius: 15px; border: 2px solid #555; overflow: hidden; }
-        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #3498db, #9b59b6); transition: width 0.3s; }
+        /* Stats & XP Bar unten */
+        #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .stats-top { position: absolute; top: 60px; display: flex; gap: 25px; font-size: 20px; color: #f1c40f; font-weight: bold; z-index: 100; text-shadow: 2px 2px 4px black; }
+
+        .xp-container { position: absolute; bottom: 20px; width: 80%; background: #333; height: 30px; border-radius: 15px; border: 2px solid #555; overflow: hidden; z-index: 100; }
+        #xp-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00c6ff, #0072ff, #9b59b6); transition: width 0.3s; }
         #xp-text { position: absolute; width: 100%; text-align: center; top: 5px; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; }
 
-        .stats { position: absolute; top: 20px; font-size: 24px; color: #f1c40f; font-weight: bold; }
-        
-        canvas { background: #000; border: 3px solid #444; }
+        canvas { background: #000; border: 5px solid #333; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
 
-        /* Belohnung Button */
-        #reward-btn { display: none; position: absolute; bottom: 60px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; animation: pulse 1s infinite; }
+        /* Overlays / Menüs */
+        .overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e1e1e; border: 3px solid #3498db; padding: 25px; border-radius: 15px; z-index: 200; width: 300px; text-align: center; box-shadow: 0 0 100px black; }
+        .menu-btn { width: 100%; margin: 8px 0; padding: 12px; cursor: pointer; background: #333; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+        .menu-btn:hover { background: #444; border: 1px solid #3498db; }
+
+        #reward-btn { display: none; position: absolute; bottom: 70px; background: #27ae60; color: white; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 110; animation: pulse 1s infinite; border: none; box-shadow: 0 0 20px #27ae60; font-size: 18px; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div class="stats">Bank: <span id="bankDisplay">0</span> 💰 | Level: <span id="lvlDisplay">1</span></div>
+    <div class="top-nav">
+        <div class="nav-box" onclick="toggleMenu('shopMenu')">SHOP 🛒</div>
+        <div class="nav-box story-btn" onclick="startStory()">STORY MODE 📖</div>
+        <div class="nav-box" onclick="toggleMenu('skinMenu')">SKINS ✨</div>
+    </div>
+
+    <div class="stats-top">
+        <span>Bank: <span id="bankVal">0</span> 💰</span>
+        <span>Eimer: <span id="bucketVal">0</span> 🪣</span>
+        <span>Lvl: <span id="lvlVal">1</span></span>
+    </div>
     
     <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-    <div id="reward-btn" onclick="claimReward()">🎁 BELOHNUNG ABHOLEN!</div>
+    <button id="reward-btn" onclick="claimReward()">🎁 XP BELOHNUNG CLAIMEN!</button>
 
     <div class="xp-container">
         <div id="xp-bar"></div>
         <div id="xp-text">XP: 0 / 100</div>
+    </div>
+
+    <div id="shopMenu" class="overlay">
+        <h2 style="color:#f1c40f">MAZE SHOP</h2>
+        <button class="menu-btn" onclick="buyDifficulty('Medium', 50)">Medium Maze (50G)</button>
+        <button class="menu-btn" onclick="buyDifficulty('Hard', 150)">ULTRA HARD (150G)</button>
+        <button class="menu-btn" onclick="toggleMenu('shopMenu')" style="color:#e74c3c">Schließen</button>
+    </div>
+
+    <div id="skinMenu" class="overlay">
+        <h2 style="color:#3498db">SKINS</h2>
+        <button class="menu-btn" onclick="setPlayer('#00ff00')">Neon Green</button>
+        <button class="menu-btn" onclick="setPlayer('#f1c40f')">Golden Berki</button>
+        <button class="menu-btn" onclick="setPlayer('#9b59b6')">Purple Ghost</button>
+        <button class="menu-btn" onclick="setPlayer('#e74c3c')">Fire Red</button>
+        <button class="menu-btn" onclick="toggleMenu('skinMenu')" style="color:#e74c3c">Schließen</button>
     </div>
 </div>
 
@@ -41,65 +77,178 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let bank = 0, xp = 0, xpNeeded = 100, level = 1;
-    let player = { x: 30, y: 440, size: 20, color: "#00ff00" };
-    
-    const goal = { x: 750, y: 200, w: 40, h: 100 };
+    // GLOBALE VARIABLEN
+    let bank = 0, bucket = 0, xp = 0, xpNeeded = 100, level = 1;
+    let player = { x: 30, y: 440, size: 18, color: "#00ff00" };
+    let lava = [];
+    let coins = [];
+    let difficulty = "Easy";
 
-    function updateUI() {
-        document.getElementById("bankDisplay").innerText = bank;
-        document.getElementById("lvlDisplay").innerText = level;
-        
-        // XP Bar berechnen
-        let percent = (xp / xpNeeded) * 100;
-        document.getElementById("xp-bar").style.width = percent + "%";
-        document.getElementById("xp-text").innerText = `XP: ${xp} / ${xpNeeded}`;
+    // WÄNDE
+    const walls = [
+        {x: 0, y: 0, w: 800, h: 10}, {x: 0, y: 490, w: 800, h: 10},
+        {x: 0, y: 0, w: 10, h: 440}, {x: 790, y: 0, w: 10, h: 200}, {x: 790, y: 300, w: 10, h: 200},
+        {x: 120, y: 120, w: 10, h: 380}, {x: 250, y: 0, w: 10, h: 320},
+        {x: 400, y: 180, w: 400, h: 10}, {x: 550, y: 320, w: 10, h: 180},
+        {x: 120, y: 120, w: 300, h: 10}
+    ];
 
-        // Belohnung anzeigen wenn XP voll
-        if (xp >= xpNeeded) {
-            document.getElementById("reward-btn").style.display = "block";
+    const goal = { x: 745, y: 210, w: 45, h: 80 };
+
+    // FUNKTIONEN
+    function toggleMenu(id) {
+        const m = document.getElementById(id);
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
+
+    function startStory() {
+        alert("STORY: Berki, du bist in der Maze-Dimension gefangen. Nur XP und Gold können dich befreien. Pass auf die Lava auf!");
+    }
+
+    function setPlayer(color) {
+        player.color = color;
+        toggleMenu('skinMenu');
+    }
+
+    function buyDifficulty(d, price) {
+        if(bank >= price) {
+            bank -= price;
+            difficulty = d;
+            alert(d + "-Modus freigeschaltet!");
+            updateUI();
+            toggleMenu('shopMenu');
         } else {
-            document.getElementById("reward-btn").style.display = "none";
+            alert("Nicht genug Gold!");
         }
     }
 
+    function spawnLava() {
+        lava = [];
+        let count = 3 + level;
+        if(difficulty === "Medium") count += 5;
+        if(difficulty === "Hard") count += 10;
+        
+        for(let i=0; i < count; i++) {
+            lava.push({
+                x: Math.random() * 600 + 120,
+                y: Math.random() * 350 + 50,
+                w: 35 + (level * 2),
+                h: 35 + (level * 2)
+            });
+        }
+    }
+
+    function spawnCoins() {
+        coins = [];
+        let count = (level % 3 === 0) ? 10 : 5; // Bonus Level alle 3 Level
+        for(let i=0; i<count; i++) {
+            coins.push({ x: Math.random() * 700 + 60, y: Math.random() * 400 + 60, collected: false });
+        }
+    }
+
+    function updateUI() {
+        document.getElementById("bankVal").innerText = bank;
+        document.getElementById("bucketVal").innerText = bucket;
+        document.getElementById("lvlVal").innerText = level;
+        
+        let percent = Math.min((xp / xpNeeded) * 100, 100);
+        document.getElementById("xp-bar").style.width = percent + "%";
+        document.getElementById("xp-text").innerText = `XP: ${xp} / ${xpNeeded}`;
+
+        document.getElementById("reward-btn").style.display = (xp >= xpNeeded) ? "block" : "none";
+    }
+
     function claimReward() {
-        alert("Glückwunsch! Du hast 50 Bonus-Gold erhalten!");
-        bank += 50;
-        xp = 0; // Reset XP nach Abholen
-        xpNeeded += 50; // Nächstes Mal schwerer
+        alert("BELOHNUNG ERHALTEN: +100 Gold & XP-Level Up!");
+        bank += 100;
+        xp = 0;
+        xpNeeded += 50;
         updateUI();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Ziel
-        ctx.fillStyle = "#27ae60";
-        ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+        // 1. Spielfeld zeichnen
+        ctx.fillStyle = "#34495e"; // Wände
+        walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+        
+        ctx.fillStyle = "#e67e22"; // Lava
+        lava.forEach(l => ctx.fillRect(l.x, l.y, l.w, l.h));
 
-        // Spieler
-        ctx.fillStyle = player.color;
+        ctx.fillStyle = "#f1c40f"; // Münzen
+        coins.forEach(c => {
+            if(!c.collected) { ctx.beginPath(); ctx.arc(c.x, c.y, 8, 0, Math.PI*2); ctx.fill(); }
+        });
+
+        ctx.fillStyle = "#27ae60"; // Ziel
+        ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.fillText("BANK", goal.x + 5, goal.y + 45);
+
+        ctx.fillStyle = player.color; // Spieler
         ctx.fillRect(player.x, player.y, player.size, player.size);
+
+        // 2. AMONG US EFFEKT (FOG OF WAR)
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-in';
+        ctx.beginPath();
+        ctx.arc(player.x + player.size/2, player.y + player.size/2, 130, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
     }
 
+    // STEUERUNG
     window.addEventListener("keydown", (e) => {
-        const s = 15;
-        if(e.key === "ArrowUp") player.y -= s;
-        if(e.key === "ArrowDown") player.y += s;
-        if(e.key === "ArrowLeft") player.x -= s;
-        if(e.key === "ArrowRight") player.x += s;
+        let nX = player.x, nY = player.y;
+        const speed = 15;
+        if(e.key === "ArrowUp") nY -= speed;
+        if(e.key === "ArrowDown") nY += speed;
+        if(e.key === "ArrowLeft") nX -= speed;
+        if(e.key === "ArrowRight") nX += speed;
+        
+        // CHEATS
+        if(e.key.toLowerCase() === "m") { xp += 25; updateUI(); }
+        if(e.key.toLowerCase() === "g") { bank += 100; updateUI(); }
 
-        // Ziel-Check
-        if(player.x + 20 > goal.x && player.y > goal.y && player.y < goal.y + goal.h) {
-            xp += 25; // 25 XP pro Ziel
-            bank += 10;
-            player.x = 30; player.y = 440;
-            updateUI();
+        let hitWall = false;
+        walls.forEach(w => {
+            if (nX < w.x + w.w && nX + player.size > w.x && nY < w.y + w.h && nY + player.size > w.y) hitWall = true;
+        });
+
+        if(!hitWall && nX > 0 && nX < canvas.width - player.size && nY > 0 && nY < canvas.height - player.size) {
+            player.x = nX; player.y = nY;
+
+            // Lava-Check
+            lava.forEach(l => {
+                if (player.x < l.x + l.w && player.x + player.size > l.x && player.y < l.y + l.h && player.y + player.size > l.y) {
+                    player.x = 30; player.y = 440; bucket = 0; 
+                    alert("LAVA! Gold verloren!");
+                    updateUI();
+                }
+            });
+
+            // Münzen-Check
+            coins.forEach(c => {
+                if(!c.collected && Math.hypot(player.x - c.x, player.y - c.y) < 25) {
+                    c.collected = true; bucket += 10; xp += 10; updateUI();
+                }
+            });
+
+            // Ziel-Check
+            if(player.x + player.size > goal.x && player.y > goal.y && player.y < goal.y + goal.h) {
+                bank += bucket; bucket = 0; xp += 40; level++;
+                player.x = 30; player.y = 440;
+                spawnLava(); spawnCoins(); updateUI();
+            }
         }
         draw();
     });
 
+    // Start-Initialisierung
+    spawnLava();
+    spawnCoins();
     updateUI();
     draw();
 </script>
